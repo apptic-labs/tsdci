@@ -1,11 +1,14 @@
+import { IoCContainer } from "../../../src/container/container";
+import {
+	IoCBindConfig,
+	IoCBindValueConfig,
+	PropertyPath,
+} from "../../../src/container/container-binding-config";
+import { InjectorHandler } from "../../../src/container/injection-handler";
+import { BuildContext, ObjectFactory } from "../../../src/model";
 
-import { InjectorHandler } from '../../../src/container/injection-handler';
-import { IoCContainer } from '../../../src/container/container';
-import { IoCBindConfig, IoCBindValueConfig, PropertyPath } from '../../../src/container/container-binding-config';
-import { BuildContext, ObjectFactory } from '../../../src/model';
-
-jest.mock('../../../src/container/injection-handler');
-jest.mock('../../../src/container/container-binding-config');
+jest.mock("../../../src/container/injection-handler");
+jest.mock("../../../src/container/container-binding-config");
 
 const mockTo = jest.fn();
 const mockGetInstance = jest.fn();
@@ -15,17 +18,18 @@ const mockIoCBindValueConfig = IoCBindValueConfig as jest.Mock;
 const mockPropertyParse = PropertyPath.parse as jest.Mock;
 
 const config = {
-    to: mockTo,
-    getInstance: mockGetInstance
+	to: mockTo,
+	getInstance: mockGetInstance,
 };
 const mockConfigGetValue = jest.fn();
 
 const valueConfig = {
-    to: mockTo,
-    getValue: mockConfigGetValue
+	to: mockTo,
+	getValue: mockConfigGetValue,
 };
 
-const mockGetConstructorFromType = InjectorHandler.getConstructorFromType as jest.Mock;
+const mockGetConstructorFromType =
+	InjectorHandler.getConstructorFromType as jest.Mock;
 const mockCheckType = InjectorHandler.checkType as jest.Mock;
 const mockCheckName = InjectorHandler.checkName as jest.Mock;
 const mockInjectProperty = InjectorHandler.injectProperty as jest.Mock;
@@ -37,232 +41,243 @@ const mockSet = jest.fn();
 const mockGetValue = jest.fn();
 const mockSetValue = jest.fn();
 (IoCContainer as any).namespaces = {
-    get: mockGet,
-    set: mockSet,
-    getValue: mockGetValue,
-    setValue: mockSetValue,
-    selectNamespace: mockSelectNamespace,
-    selectedNamespace: mockSelectedNamespace,
-    removeNamespace: mockRemoveNamespace
+	get: mockGet,
+	set: mockSet,
+	getValue: mockGetValue,
+	setValue: mockSetValue,
+	selectNamespace: mockSelectNamespace,
+	selectedNamespace: mockSelectedNamespace,
+	removeNamespace: mockRemoveNamespace,
 };
 
-describe('Container', () => {
-    beforeEach(() => {
-        mockTo.mockClear();
-        mockTo.mockReturnThis();
-        mockGetInstance.mockClear();
+describe("Container", () => {
+	beforeEach(() => {
+		mockTo.mockClear();
+		mockTo.mockReturnThis();
+		mockGetInstance.mockClear();
 
-        mockGetConstructorFromType.mockClear();
-        mockCheckType.mockClear();
-        mockCheckName.mockClear();
-        mockInjectProperty.mockClear();
+		mockGetConstructorFromType.mockClear();
+		mockCheckType.mockClear();
+		mockCheckName.mockClear();
+		mockInjectProperty.mockClear();
 
-        mockIoCBindConfig.mockClear();
-        mockIoCBindConfig.mockImplementation(() => {
-            return config;
-        });
-        mockIoCBindValueConfig.mockClear();
-        mockIoCBindValueConfig.mockImplementation(() => {
-            return valueConfig;
-        });
-        mockSelectNamespace.mockClear();
-        mockSelectedNamespace.mockClear();
-        mockRemoveNamespace.mockClear();
-        mockGet.mockClear();
-        mockSet.mockClear();
-        mockGetValue.mockClear();
-        mockSetValue.mockClear();
+		mockIoCBindConfig.mockClear();
+		mockIoCBindConfig.mockImplementation(() => {
+			return config;
+		});
+		mockIoCBindValueConfig.mockClear();
+		mockIoCBindValueConfig.mockImplementation(() => {
+			return valueConfig;
+		});
+		mockSelectNamespace.mockClear();
+		mockSelectedNamespace.mockClear();
+		mockRemoveNamespace.mockClear();
+		mockGet.mockClear();
+		mockSet.mockClear();
+		mockGetValue.mockClear();
+		mockSetValue.mockClear();
 
-        mockConfigGetValue.mockClear();
-        mockPropertyParse.mockClear();
-    });
+		mockConfigGetValue.mockClear();
+		mockPropertyParse.mockClear();
+	});
 
-    describe('bind()', () => {
+	describe("bind()", () => {
+		it("should bind a type to the container", () => {
+			class MyBaseType {}
+			const constructor = { anyObject: "anyValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
 
-        it('should bind a type to the container', () => {
-            class MyBaseType { }
-            const constructor = { anyObject: 'anyValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
+			const bind = IoCContainer.bind(MyBaseType);
 
-            const bind = IoCContainer.bind(MyBaseType);
+			expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockIoCBindConfig).toHaveBeenCalledWith(
+				constructor,
+				IoCContainer.get,
+				IoCContainer.getValue,
+			);
+			expect(mockTo).toHaveBeenCalledWith(MyBaseType);
 
-            expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockIoCBindConfig).toHaveBeenCalledWith(constructor, IoCContainer.get, IoCContainer.getValue);
-            expect(mockTo).toHaveBeenCalledWith(MyBaseType);
+			expect(bind).toStrictEqual(config);
+		});
+	});
 
-            expect(bind).toStrictEqual(config);
-        });
-    });
+	describe("bindName()", () => {
+		it("should bind a value to the container", () => {
+			const valueName = "myvalue";
+			const path = "a";
+			mockPropertyParse.mockReturnValue({
+				name: valueName,
+				path: path,
+			});
+			mockGetValue.mockReturnValue(null);
 
-    describe('bindName()', () => {
+			const bind = IoCContainer.bindName(`${valueName}.${path}`);
 
-        it('should bind a value to the container', () => {
-            const valueName = 'myvalue';
-            const path = 'a';
-            mockPropertyParse.mockReturnValue({
-                name: valueName,
-                path: path
-            });
-            mockGetValue.mockReturnValue(null);
+			expect(mockCheckName).toHaveBeenCalledWith(`${valueName}.${path}`);
+			expect(mockGetValue).toHaveBeenCalledWith(valueName);
+			expect(mockIoCBindValueConfig).toHaveBeenCalledWith(valueName);
+			expect(mockSetValue).toHaveBeenCalledWith(valueName, valueConfig);
 
-            const bind = IoCContainer.bindName(`${valueName}.${path}`);
+			expect(bind).toMatchObject({
+				path: path,
+			});
+			expect(bind).toEqual(valueConfig);
+		});
+	});
 
-            expect(mockCheckName).toHaveBeenCalledWith(`${valueName}.${path}`);
-            expect(mockGetValue).toHaveBeenCalledWith(valueName);
-            expect(mockIoCBindValueConfig).toHaveBeenCalledWith(valueName);
-            expect(mockSetValue).toHaveBeenCalledWith(valueName, valueConfig);
+	describe("get()", () => {
+		it("should get an instance for a type bound to the container", () => {
+			class MyBaseType {}
+			const constructor = { anyProp: "anyValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
+			mockIoCBindConfig.mockImplementation(() => {
+				return {
+					to: mockTo,
+					getInstance: mockGetInstance,
+					iocFactory: {},
+				};
+			});
+			const instance = { prop: "instanceProp" };
+			const context = new TestBuildContext();
+			mockGetInstance.mockReturnValue(instance);
 
-            expect(bind).toMatchObject({
-                path: path
-            });
-            expect(bind).toEqual(valueConfig);
-        });
-    });
+			const result = IoCContainer.get(MyBaseType, context);
 
-    describe('get()', () => {
-        it('should get an instance for a type bound to the container', () => {
-            class MyBaseType { }
-            const constructor = { anyProp: 'anyValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
-            mockIoCBindConfig.mockImplementation(() => {
-                return {
-                    to: mockTo,
-                    getInstance: mockGetInstance,
-                    iocFactory: {}
-                };
-            });
-            const instance = { prop: 'instanceProp' };
-            const context = new TestBuildContext();
-            mockGetInstance.mockReturnValue(instance);
+			expect(mockGetInstance).toHaveBeenCalledWith(context);
+			expect(mockTo).toHaveBeenCalledTimes(1);
+			expect(result).toStrictEqual(instance);
+		});
 
-            const result = IoCContainer.get(MyBaseType, context);
+		it("should set a target class before get an instance if no provider is configured", () => {
+			class MyBaseType {}
+			const constructor = { anyProperty: "anyValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
+			const instance = { prop: "instanceProp" };
+			const context = new TestBuildContext();
+			mockGetInstance.mockReturnValue(instance);
 
-            expect(mockGetInstance).toHaveBeenCalledWith(context);
-            expect(mockTo).toHaveBeenCalledTimes(1);
-            expect(result).toStrictEqual(instance);
-        });
+			const result = IoCContainer.get(MyBaseType, context);
 
-        it('should set a target class before get an instance if no provider is configured', () => {
-            class MyBaseType { }
-            const constructor = { anyProperty: 'anyValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
-            const instance = { prop: 'instanceProp' };
-            const context = new TestBuildContext();
-            mockGetInstance.mockReturnValue(instance);
+			expect(mockGetInstance).toHaveBeenCalledWith(context);
+			expect(mockTo).toHaveBeenCalledTimes(2);
+			expect(result).toStrictEqual(instance);
+		});
+	});
 
-            const result = IoCContainer.get(MyBaseType, context);
+	describe("getValue()", () => {
+		it("should get an instance for a type bound to the container", () => {
+			const valueName = "myvalue";
+			const path = "a";
+			const value = "value";
+			mockPropertyParse.mockReturnValue({
+				name: valueName,
+				path: path,
+			});
+			mockGetValue.mockReturnValue(null);
+			mockConfigGetValue.mockReturnValue(value);
 
-            expect(mockGetInstance).toHaveBeenCalledWith(context);
-            expect(mockTo).toHaveBeenCalledTimes(2);
-            expect(result).toStrictEqual(instance);
-        });
-    });
+			const result = IoCContainer.getValue(`${valueName}.${path}`);
 
-    describe('getValue()', () => {
-        it('should get an instance for a type bound to the container', () => {
-            const valueName = 'myvalue';
-            const path = 'a';
-            const value = 'value';
-            mockPropertyParse.mockReturnValue({
-                name: valueName,
-                path: path
-            });
-            mockGetValue.mockReturnValue(null);
-            mockConfigGetValue.mockReturnValue(value);
+			expect(mockConfigGetValue).toHaveBeenCalled();
+			expect(result).toStrictEqual(value);
+		});
+	});
 
-            const result = IoCContainer.getValue(`${valueName}.${path}`);
+	describe("getType()", () => {
+		it("should throw an error for a type not bound to the container", () => {
+			class MyBaseType {}
+			const constructor = { prop1: "propValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
+			expect(() => IoCContainer.getType(MyBaseType)).toThrow(
+				TypeError(
+					`The type MyBaseType hasn't been registered with the IOC Container`,
+				),
+			);
 
-            expect(mockConfigGetValue).toHaveBeenCalled();
-            expect(result).toStrictEqual(value);
-        });
-    });
+			expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
+		});
 
+		it("should return target type for a type bound to the container", () => {
+			class MyBaseType {}
+			const constructor = { prop1: "propValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
+			mockGet.mockReturnValue({
+				to: mockTo,
+				getInstance: mockGetInstance,
+				targetSource: { target: "source" },
+			});
 
-    describe('getType()', () => {
-        it('should throw an error for a type not bound to the container', () => {
-            class MyBaseType { }
-            const constructor = { prop1: 'propValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
-            expect(() => IoCContainer.getType(MyBaseType))
-                .toThrow(TypeError(`The type MyBaseType hasn't been registered with the IOC Container`));
+			const result = IoCContainer.getType(MyBaseType);
 
-            expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
-        });
+			expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGet).toHaveBeenCalledWith(constructor);
+			expect(result).toStrictEqual({ target: "source" });
+		});
 
-        it('should return target type for a type bound to the container', () => {
-            class MyBaseType { }
-            const constructor = { prop1: 'propValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
-            mockGet.mockReturnValue({
-                to: mockTo,
-                getInstance: mockGetInstance,
-                targetSource: { target: 'source' }
-            });
+		it("should return source when no targetSource is available", () => {
+			class MyBaseType {}
+			const constructor = { p: "propValue" };
+			mockGetConstructorFromType.mockReturnValue(constructor);
+			mockGet.mockReturnValue({
+				to: mockTo,
+				getInstance: mockGetInstance,
+				source: { target: "source" },
+			});
 
-            const result = IoCContainer.getType(MyBaseType);
+			const result = IoCContainer.getType(MyBaseType);
 
-            expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGet).toHaveBeenCalledWith(constructor);
-            expect(result).toStrictEqual({ target: 'source' });
-        });
+			expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
+			expect(mockGet).toHaveBeenCalledWith(constructor);
+			expect(result).toStrictEqual({ target: "source" });
+		});
+	});
 
-        it('should return source when no targetSource is available', () => {
-            class MyBaseType { }
-            const constructor = { p: 'propValue' };
-            mockGetConstructorFromType.mockReturnValue(constructor);
-            mockGet.mockReturnValue({
-                to: mockTo,
-                getInstance: mockGetInstance,
-                source: { target: 'source' }
-            });
+	describe("injectProperty()", () => {
+		it("should call InjectorHandler.injectProperty properly", () => {
+			class MyBaseType {}
+			IoCContainer.injectProperty(MyBaseType, "prop", Date);
 
-            const result = IoCContainer.getType(MyBaseType);
+			expect(mockInjectProperty).toHaveBeenCalledWith(
+				MyBaseType,
+				"prop",
+				Date,
+				IoCContainer.get,
+			);
+		});
+	});
 
-            expect(mockCheckType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGetConstructorFromType).toHaveBeenCalledWith(MyBaseType);
-            expect(mockGet).toHaveBeenCalledWith(constructor);
-            expect(result).toStrictEqual({ target: 'source' });
-        });
-    });
+	describe("namespace()", () => {
+		it("should create a namespace properly", () => {
+			const namespaceName = "mynamespace";
+			const namespace = IoCContainer.namespace(namespaceName);
+			namespace.remove();
+			expect(mockSelectNamespace).toHaveBeenCalledWith(namespaceName);
+			expect(mockRemoveNamespace).toHaveBeenCalledWith(namespaceName);
+		});
+	});
 
-    describe('injectProperty()', () => {
-        it('should call InjectorHandler.injectProperty properly', () => {
-            class MyBaseType { }
-            IoCContainer.injectProperty(MyBaseType, 'prop', Date);
-
-            expect(mockInjectProperty).toHaveBeenCalledWith(MyBaseType, 'prop', Date, IoCContainer.get);
-        });
-    });
-
-    describe('namespace()', () => {
-        it('should create a namespace properly', () => {
-            const namespaceName = 'mynamespace';
-            const namespace = IoCContainer.namespace(namespaceName);
-            namespace.remove();
-            expect(mockSelectNamespace).toHaveBeenCalledWith(namespaceName);
-            expect(mockRemoveNamespace).toHaveBeenCalledWith(namespaceName);
-        });
-    });
-
-    describe('selectedNamespace()', () => {
-        it('should return the selected namespace', () => {
-            const namespaceName = 'mynamespace';
-            mockSelectedNamespace.mockReturnValue(namespaceName);
-            expect(IoCContainer.selectedNamespace()).toEqual(namespaceName);
-            expect(mockSelectedNamespace).toHaveBeenCalledTimes(1);
-        });
-    });
-
+	describe("selectedNamespace()", () => {
+		it("should return the selected namespace", () => {
+			const namespaceName = "mynamespace";
+			mockSelectedNamespace.mockReturnValue(namespaceName);
+			expect(IoCContainer.selectedNamespace()).toEqual(namespaceName);
+			expect(mockSelectedNamespace).toHaveBeenCalledTimes(1);
+		});
+	});
 });
 
 class TestBuildContext extends BuildContext {
-    public build<T>(_source: Function & { prototype: T; }, _factory: ObjectFactory): T {
-        return null;
-    }
-    public resolve<T>(_source: Function & { prototype: T }): T {
-        return null;
-    }
+	public build<T>(
+		_source: Function & { prototype: T },
+		_factory: ObjectFactory,
+	): T {
+		return null;
+	}
+	public resolve<T>(_source: Function & { prototype: T }): T {
+		return null;
+	}
 }

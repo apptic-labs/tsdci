@@ -1,3 +1,3 @@
 export default abstract class IBaseType {
-    public abstract method1(): void;
+	public abstract method1(): void;
 }

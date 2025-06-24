@@ -1,10 +1,10 @@
-import { Inject } from '../../src/typescript-ioc';
-import IBaseType from './parent-type';
+import { Inject } from "../../src/typescript-ioc";
+import IBaseType from "./parent-type";
 
 export class Worker {
-    @Inject public type: IBaseType;
+	@Inject public type: IBaseType;
 
-    public work() {
-        this.type.method1();
-    }
+	public work() {
+		this.type.method1();
+	}
 }
