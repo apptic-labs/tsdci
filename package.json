@@ -21,7 +21,7 @@
     "@biomejs/biome": "^2.0.5",
     "@types/jest": "^26.0.0",
     "@types/lodash.get": "^4.4.6",
-    "@types/lodash.set": "^4.3.6",
+    "@types/lodash.set": "^4.3.9",
     "@types/node": "^8.10.61",
     "codecov": "^3.8.3",
     "jest": "^30.0.2",
