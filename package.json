@@ -1,8 +1,7 @@
 {
-  "name": "typescript-ioc",
-  "version": "3.2.3",
+  "name": "ts-ioc",
+  "version": "0.0.1",
   "description": "A Lightweight annotation-based dependency injection container for typescript.",
-  "author": "Thiago da Rosa de Bustamante <trbustamante@gmail.com>",
   "scripts": {
     "start": "tsc -w",
     "build": "npm run clean && tsc",
@@ -15,24 +14,23 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "lodash.get": "^4.4.2",
-    "lodash.set": "^4.3.2",
-    "reflect-metadata": "^0.1.13"
+    "lodash": "^4.17.21",
+    "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.0",
     "@types/lodash.get": "^4.4.6",
     "@types/lodash.set": "^4.3.6",
     "@types/node": "^8.10.61",
-    "codecov": "^3.7.0",
-    "jest": "^26.1.0",
+    "codecov": "^3.8.3",
+    "jest": "^30.0.2",
     "rimraf": "^2.7.1",
     "source-map-support": "^0.5.19",
-    "ts-jest": "^26.1.1",
+    "ts-jest": "^29.4.0",
     "ts-node": "^8.10.2",
     "tslint": "^6.1.2",
     "tslint-config-prettier": "^1.18.0",
-    "typescript": "^3.9.5"
+    "typescript": "^5.8.3"
   },
   "keywords": [
     "ioc",

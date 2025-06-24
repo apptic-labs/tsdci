@@ -134,7 +134,7 @@ describe('InjectorHandler', () => {
             expect(instance.myProperty).toEqual(propertyInstance);
             instance.myProperty = secondInstance;
             expect(instance.myProperty).toEqual(secondInstance);
-            expect(instanceFactory).toBeCalledWith(Date, context);
+            expect(instanceFactory).toHaveBeenCalledWith(Date, context);
         });
 
         it('should be able to handle BuildContext in the constructor', () => {
@@ -152,7 +152,7 @@ describe('InjectorHandler', () => {
             expect(instance.myProperty).toEqual(propertyInstance);
             instance.myProperty = secondInstance;
             expect(instance.myProperty).toEqual(secondInstance);
-            expect(instanceFactory).toBeCalledWith(Date, context);
+            expect(instanceFactory).toHaveBeenCalledWith(Date, context);
         });
     });
 
@@ -170,7 +170,7 @@ describe('InjectorHandler', () => {
             expect(instance.myProperty).toEqual(name1);
             instance.myProperty = name2;
             expect(instance.myProperty).toEqual(name2);
-            expect(valueFactory).toBeCalledWith(name1);
+            expect(valueFactory).toHaveBeenCalledWith(name1);
         });
     });
 });
