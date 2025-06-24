@@ -1,5 +1,5 @@
 {
-  "name": "ts-ioc",
+  "name": "tsdci",
   "version": "0.0.1",
   "description": "A Lightweight annotation-based dependency injection container for typescript.",
   "scripts": {
