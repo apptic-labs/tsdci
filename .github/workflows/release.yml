@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+    - name: Update package.json version
+      run: |
+        npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+        # Update package name for npm organization
+        sed -i 's/"name": "tsdci"/"name": "@appticlabs\/tsdci"/' package.json
+        
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ steps.get_version.outputs.VERSION }}
+        body: |
+          Release ${{ steps.get_version.outputs.VERSION }}
+          
+          ## Changes
+          See the [commit history](https://github.com/${{ github.repository }}/commits/${{ github.ref }}) for details.
+        draft: false
+        prerelease: false
+        
+    - name: Publish to npm
+      run: npm publish --access public
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-gpr:
+    needs: release
+    runs-on: ubuntu-latest
+    if: success()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js for GPR
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://npm.pkg.github.com'
+        scope: '@apptic-labs'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build package
+      run: npm run build
+      
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+    - name: Update package.json for GPR
+      run: |
+        npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+        # Update package name for GitHub Package Registry
+        sed -i 's/"name": "tsdci"/"name": "@apptic-labs\/tsdci"/' package.json
+        
+    - name: Publish to GitHub Package Registry
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
