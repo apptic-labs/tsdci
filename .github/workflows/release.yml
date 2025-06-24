@@ -36,6 +36,8 @@ jobs:
     - name: Update package.json version
       run: |
         npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
+        # Update package name for npm organization
+        sed -i 's/"name": "tsdci"/"name": "@appticlabs\/tsdci"/' package.json
         
     - name: Create GitHub Release
       uses: actions/create-release@v1
@@ -88,7 +90,7 @@ jobs:
       run: |
         npm version ${{ steps.get_version.outputs.VERSION }} --no-git-tag-version
         # Update package name for GitHub Package Registry
-        sed -i 's/"name": "ts-ioc"/"name": "@apptic-labs\/ts-ioc"/' package.json
+        sed -i 's/"name": "tsdci"/"name": "@apptic-labs\/tsdci"/' package.json
         
     - name: Publish to GitHub Package Registry
       run: npm publish
